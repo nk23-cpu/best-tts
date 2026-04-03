@@ -1,3 +1,2 @@
-fastapi==0.110.0
-uvicorn==0.27.1
-edge-tts==6.1.9
+flask
+edge-tts
