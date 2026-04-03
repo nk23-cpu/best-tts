@@ -7,7 +7,7 @@ import os
 
 app = FastAPI()
 
-VOICE = "en-IN-PrabhatNeural"
+VOICE = "en-IN-PrabhatNeural"  # Hinglish voice
 
 async def generate_tts(text, filename):
     communicate = edge_tts.Communicate(text, voice=VOICE)
