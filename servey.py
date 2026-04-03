@@ -1,27 +1,39 @@
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from flask import Flask, request, send_file
 import edge_tts
+import asyncio
 import uuid
 import os
+import subprocess
 
-app = FastAPI()
+app = Flask(__name__)
 
 VOICE = "en-IN-PrabhatNeural"
 
-@app.get("/tts")
-async def tts(text: str):
-
-    uid = str(uuid.uuid4())
-    mp3_file = f"{uid}.mp3"
-
+async def generate_tts(text, mp3_file):
     communicate = edge_tts.Communicate(text, voice=VOICE)
     await communicate.save(mp3_file)
 
-    def iterfile():
-        with open(mp3_file, "rb") as f:
-            while chunk := f.read(1024):
-                yield chunk
+@app.route("/tts", methods=["POST"])
+def tts():
+    text = request.json.get("text")
 
-        os.remove(mp3_file)
+    file_id = str(uuid.uuid4())
+    mp3_file = f"{file_id}.mp3"
+    wav_file = f"{file_id}.wav"
 
-    return StreamingResponse(iterfile(), media_type="audio/mpeg")
+    # Step 1: Edge TTS → MP3
+    asyncio.run(generate_tts(text, mp3_file))
+
+    # Step 2: MP3 → WAV (FFmpeg direct)
+    subprocess.run([
+        "ffmpeg", "-i", mp3_file,
+        "-ac", "1", "-ar", "16000",
+        wav_file
+    ])
+
+    os.remove(mp3_file)
+
+    return send_file(wav_file, mimetype="audio/wav")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
