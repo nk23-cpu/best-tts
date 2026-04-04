@@ -7,7 +7,7 @@ import subprocess
 
 app = Flask(__name__)
 
-VOICE = "en-IN-PrabhatNeural"
+VOICE = "en-IN-NeerjaNeural"
 
 async def generate_tts(text, mp3_file):
     communicate = edge_tts.Communicate(text, voice=VOICE)
