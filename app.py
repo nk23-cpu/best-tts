@@ -15,34 +15,32 @@ async def generate_tts(text, mp3_file):
 
 @app.route("/tts", methods=["GET", "POST"])
 def tts():
+    # 🔥 DEBUG: check request type
+    print("\n===== NEW REQUEST =====")
+
     if request.method == "POST":
-        text = request.json.get("text")
+        data = request.json
+        print("POST DATA:", data)
+        text = data.get("text")
     else:
         text = request.args.get("text")
+        print("GET TEXT:", text)
 
-    print("🔥 RECEIVED TEXT:", text)   # 👈 ADD THIS
-
+    # ❌ check
     if not text:
+        print("❌ No text received")
         return "No text provided", 400
-# ✅ GET + POST dono allow
-@app.route("/tts", methods=["GET", "POST"])
-def tts():
-    if request.method == "POST":
-        text = request.json.get("text")
-    else:
-        text = request.args.get("text")
 
-    if not text:
-        return "No text provided", 400
+    print("✅ FINAL TEXT RECEIVED:", text)
 
     file_id = str(uuid.uuid4())
     mp3_file = f"{file_id}.mp3"
     wav_file = f"{file_id}.wav"
 
-    # Step 1: TTS
+    # 🎤 Generate TTS
     asyncio.run(generate_tts(text, mp3_file))
 
-    # Step 2: Convert
+    # 🔁 Convert MP3 → WAV
     subprocess.run([
         "ffmpeg", "-i", mp3_file,
         "-ac", "1", "-ar", "16000",
@@ -50,6 +48,8 @@ def tts():
     ])
 
     os.remove(mp3_file)
+
+    print("🔊 Audio generated & sending back\n")
 
     return send_file(wav_file, mimetype="audio/wav")
 
