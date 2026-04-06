@@ -13,6 +13,17 @@ async def generate_tts(text, mp3_file):
     communicate = edge_tts.Communicate(text, voice=VOICE)
     await communicate.save(mp3_file)
 
+@app.route("/tts", methods=["GET", "POST"])
+def tts():
+    if request.method == "POST":
+        text = request.json.get("text")
+    else:
+        text = request.args.get("text")
+
+    print("🔥 RECEIVED TEXT:", text)   # 👈 ADD THIS
+
+    if not text:
+        return "No text provided", 400
 # ✅ GET + POST dono allow
 @app.route("/tts", methods=["GET", "POST"])
 def tts():
